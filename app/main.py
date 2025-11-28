@@ -459,6 +459,17 @@ def render_sidebar():
         else:
             st.warning("請至少選擇一個資料來源")
 
+        st.markdown("---")
+
+        # 使用說明
+        st.header("📖 使用說明")
+        st.markdown("""
+1. **選擇資料來源**：勾選要查詢的知識庫
+2. **輸入問題**：在主畫面輸入您的問題
+3. **點擊查詢**：AI 會從選取的知識庫中搜尋相關資料並回答
+4. **查看來源**：展開參考來源可查看原始內容
+""")
+
     return selected_stores
 
 
