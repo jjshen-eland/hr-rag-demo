@@ -14,8 +14,8 @@ ENV/
 *.swp
 *.swo
 
-# Data files (mapping files contain API IDs)
-data/gemini_mappings/
+# Data files
+# Note: gemini_mappings/ is tracked for Streamlit Cloud deployment
 
 # Environment
 .env
