@@ -19,10 +19,10 @@ from pathlib import Path
 
 # 頁面配置
 st.set_page_config(
-    page_title="HR 知識庫查詢",
+    page_title="人資法規智能查詢",
     page_icon="👷",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Store 配置（4 個 Store）
@@ -459,31 +459,7 @@ def render_sidebar():
         else:
             st.warning("請至少選擇一個資料來源")
 
-        st.markdown("---")
-
-        # === 查詢設定 ===
-        st.subheader("🔧 查詢設定")
-
-        model_choice = st.selectbox(
-            "模型",
-            options=['gemini-2.5-flash', 'gemini-2.5-pro'],
-            index=0,
-            key="model_choice"
-        )
-
-        st.markdown("---")
-
-        # 使用說明
-        with st.expander("💡 使用說明", expanded=False):
-            st.markdown("""
-            **如何使用：**
-            1. 在左側選擇要查詢的資料來源
-            2. 輸入您的問題
-            3. 點擊「查詢」按鈕
-            4. 查看 AI 生成的答案和參考來源
-            """)
-
-    return selected_stores, model_choice
+    return selected_stores
 
 
 def main():
@@ -496,11 +472,11 @@ def main():
         st.stop()
 
     # 渲染側邊欄
-    selected_stores, model_choice = render_sidebar()
+    selected_stores = render_sidebar()
 
     # 主標題
-    st.title("👷 HR 知識庫查詢")
-    st.caption("💡 查詢勞動法規、稅務、健保等 HR 相關問題")
+    st.title("👷 人資法規智能查詢")
+    st.caption("⚠️ 本系統為展示用，如遇畫面無反應，請重新整理頁面")
 
     # 問題輸入
     if 'current_question' not in st.session_state:
@@ -533,8 +509,7 @@ def main():
                 result = query_gemini(
                     question,
                     selected_stores,
-                    api_key,
-                    model=model_choice
+                    api_key
                 )
 
             if result['error']:
@@ -557,13 +532,21 @@ def main():
 
                 st.markdown("---")
 
-                # 來源
+                # 來源（去重複）
                 if result['sources']:
-                    st.subheader(f"📚 參考來源 ({len(result['sources'])} 筆)")
+                    # 以 filename 去重複
+                    seen_filenames = set()
+                    unique_sources = []
+                    for source in result['sources']:
+                        if source['filename'] not in seen_filenames:
+                            seen_filenames.add(source['filename'])
+                            unique_sources.append(source)
+
+                    st.subheader(f"📚 參考來源 ({len(unique_sources)} 筆)")
 
                     # 按類型分組
                     source_groups = {}
-                    for source in result['sources']:
+                    for source in unique_sources:
                         stype = source.get('source_type', '未知')
                         if stype not in source_groups:
                             source_groups[stype] = []
@@ -595,7 +578,7 @@ def main():
 
     # 頁尾
     st.divider()
-    st.caption("資料來源：勞動部、勞保局、職安署、財政部、健保署、全國法規資料庫")
+    st.caption("資料來源：意藍資訊勞動知識庫")
 
 
 if __name__ == "__main__":
