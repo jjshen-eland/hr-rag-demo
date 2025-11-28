@@ -12,6 +12,7 @@ HR 知識庫智能查詢系統 - Streamlit 部署版本
 
 import streamlit as st
 import os
+import re
 import time
 import json
 from typing import List, Dict, Any
@@ -26,30 +27,31 @@ st.set_page_config(
 )
 
 # Store 配置（4 個 Store）- v2 版本
+# 2024-11-29 更新：重建 stores，法規名稱正規化修復
 STORES = {
     # === 勞動法規 ===
     'labor_faq': {
         'name': 'krepo-labor-faq-v2',
-        'store_id': 'fileSearchStores/krepolaborfaqv2-9akltlw9tqut',
+        'store_id': 'fileSearchStores/krepolaborfaqv2-u2fyf3lx7jiz',
         'display_name': '勞動法規FAQ',
         'icon': '👷',
         'description': '勞動部、勞保局、職安署常見問答',
-        'count': 1487,
+        'count': 1491,
         'group': 'labor',
     },
     'labor_articles': {
         'name': 'krepo-labor-articles-v2',
-        'store_id': 'fileSearchStores/krepolaborarticlesv2-wb8tgmx49wfh',
+        'store_id': 'fileSearchStores/krepolaborarticlesv2-vaavszbjixrw',
         'display_name': '勞動與健保業務',
         'icon': '📋',
         'description': '勞動部業務專區、勞保局保險業務、健保投保說明',
-        'count': 228,
+        'count': 247,
         'group': 'labor',
     },
     # === 稅務 ===
     'tax_faq': {
         'name': 'krepo-tax-faq-v2',
-        'store_id': 'fileSearchStores/krepotaxfaqv2-nfc7ykfmrwoi',
+        'store_id': 'fileSearchStores/krepotaxfaqv2-f7rnf4bjyo4f',
         'display_name': '稅務問答',
         'icon': '💰',
         'description': '綜合所得稅問與答',
@@ -59,7 +61,7 @@ STORES = {
     # === 法規 ===
     'law_articles': {
         'name': 'krepo-law-articles-v2',
-        'store_id': 'fileSearchStores/krepolawarticlesv2-l6wdg4ybixoe',
+        'store_id': 'fileSearchStores/krepolawarticlesv2-s6rfdsug6uvx',
         'display_name': '法規條文',
         'icon': '📖',
         'description': '全民健康保險法等法規條文',
@@ -117,6 +119,161 @@ def load_mappings():
 
 # 全域 Mapping (載入一次)
 GEMINI_ID_MAPPING, FILE_MAPPING = load_mappings()
+
+
+def load_law_pcode_mapping() -> Dict[str, str]:
+    """
+    載入法規名稱 → pcode 對照表
+
+    用於將法規名稱轉換為全國法規資料庫連結
+    """
+    mapping_path = Path(__file__).parent.parent / "data" / "law_pcode_mapping.json"
+
+    try:
+        if mapping_path.exists():
+            with open(mapping_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        st.warning(f"載入法規對照表時發生錯誤: {e}")
+
+    return {}
+
+
+# 全域法規對照表
+LAW_PCODE_MAPPING = load_law_pcode_mapping()
+
+# 預先計算排序後的法規名稱（長度由長到短，避免部分匹配問題）
+SORTED_LAW_NAMES = sorted(LAW_PCODE_MAPPING.keys(), key=len, reverse=True)
+
+
+def linkify_law_names(text: str) -> str:
+    """
+    將文字中的法規名稱轉換為可點擊的連結
+
+    支援格式：
+    - 純法規名稱：勞動基準法 → [勞動基準法](url)
+    - 法規+條文：勞動基準法第38條 → [勞動基準法第38條](url)
+    - 包含項款：勞動基準法第11條第1項第5款 → [勞動基準法第11條第1項第5款](url)
+
+    Args:
+        text: 原始文字
+
+    Returns:
+        轉換後的文字（含 Markdown 連結）
+    """
+    if not text or not LAW_PCODE_MAPPING:
+        return text
+
+    # 記錄已替換的位置，避免重複替換
+    replaced_ranges = []
+
+    def is_overlapping(start: int, end: int) -> bool:
+        """檢查是否與已替換的範圍重疊"""
+        for r_start, r_end in replaced_ranges:
+            if start < r_end and end > r_start:
+                return True
+        return False
+
+    # 建立替換列表（位置, 原始文字, 連結文字）
+    replacements = []
+
+    for law_name in SORTED_LAW_NAMES:
+        pcode = LAW_PCODE_MAPPING[law_name]
+
+        # 匹配法規名稱 + 可選的條文編號（第X條、第X條之Y、第X條第Y項第Z款、但書等）
+        # 條文編號格式：第\d+條(?:之\d+)?(?:第\d+項)?(?:第\d+款)?(?:但書)?
+        pattern = re.escape(law_name) + r'(第\d+條(?:之\d+)?(?:第\d+項)?(?:第\d+款)?(?:但書)?)?'
+
+        for match in re.finditer(pattern, text):
+            start, end = match.span()
+
+            # 檢查是否已被替換
+            if is_overlapping(start, end):
+                continue
+
+            full_match = match.group(0)
+            article_part = match.group(1)  # 可能是 None
+
+            # 建構 URL
+            if article_part:
+                # 提取條文編號（阿拉伯數字）
+                article_match = re.search(r'第(\d+)條', article_part)
+                if article_match:
+                    article_num = article_match.group(1)
+                    # 單一條文頁面
+                    url = f"https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode={pcode}&flno={article_num}"
+                else:
+                    # 整部法規頁面
+                    url = f"https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode={pcode}"
+            else:
+                # 整部法規頁面
+                url = f"https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode={pcode}"
+
+            # 建立 Markdown 連結
+            link = f"[{full_match}]({url})"
+
+            replacements.append((start, end, full_match, link))
+            replaced_ranges.append((start, end))
+
+    # 按位置倒序排列，從後往前替換（避免位置偏移）
+    replacements.sort(key=lambda x: x[0], reverse=True)
+
+    result = text
+    for start, end, original, link in replacements:
+        result = result[:start] + link + result[end:]
+
+    return result
+
+
+def linkify_law_section(text: str) -> str:
+    """
+    只在「相關法規」區塊將法規名稱轉換為連結
+
+    找到「相關法規:」或「相關法規：」後的內容，只對該部分套用連結轉換。
+    其他內文保持原樣。
+
+    Args:
+        text: 原始答案文字
+
+    Returns:
+        轉換後的文字
+    """
+    if not text:
+        return text
+
+    # 尋找「相關法規」區塊的各種可能格式
+    patterns = [
+        r'(相關法規[：:]\s*)',      # 相關法規: 或 相關法規：
+        r'(相關法規引用[：:]\s*)',  # 相關法規引用:
+        r'(引用法規[：:]\s*)',      # 引用法規:
+        r'(法規依據[：:]\s*)',      # 法規依據:
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            # 找到標題位置
+            start_pos = match.end()
+
+            # 找到該段落的結尾（下一個空行或文件結尾）
+            remaining = text[start_pos:]
+
+            # 找下一個段落分隔（兩個換行或結尾）
+            end_match = re.search(r'\n\n|\n(?=[#\*\-])', remaining)
+            if end_match:
+                end_pos = start_pos + end_match.start()
+                law_section = text[start_pos:end_pos]
+                # 只對法規區塊套用連結
+                linked_section = linkify_law_names(law_section)
+                return text[:start_pos] + linked_section + text[end_pos:]
+            else:
+                # 到文件結尾
+                law_section = text[start_pos:]
+                linked_section = linkify_law_names(law_section)
+                return text[:start_pos] + linked_section
+
+    # 沒找到相關法規區塊，返回原文
+    return text
 
 
 def resolve_source_display_name(raw_id: str) -> tuple:
@@ -539,7 +696,9 @@ def main():
 
                 # 答案
                 st.subheader("📝 答案")
-                st.markdown(result['answer'])
+                # 只在「相關法規」區塊加上連結
+                answer_with_links = linkify_law_section(result['answer'])
+                st.markdown(answer_with_links)
 
                 st.markdown("---")
 
