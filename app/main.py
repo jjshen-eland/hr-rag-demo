@@ -25,12 +25,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Store 配置（4 個 Store）
+# Store 配置（4 個 Store）- v2 版本
 STORES = {
     # === 勞動法規 ===
     'labor_faq': {
-        'name': 'krepo-labor-faq',
-        'store_id': 'fileSearchStores/krepolaborfaq-sak7us3cm6pd',
+        'name': 'krepo-labor-faq-v2',
+        'store_id': 'fileSearchStores/krepolaborfaqv2-9akltlw9tqut',
         'display_name': '勞動法規FAQ',
         'icon': '👷',
         'description': '勞動部、勞保局、職安署常見問答',
@@ -38,8 +38,8 @@ STORES = {
         'group': 'labor',
     },
     'labor_articles': {
-        'name': 'krepo-labor-articles',
-        'store_id': 'fileSearchStores/krepolaborarticles-piho4qc46y5s',
+        'name': 'krepo-labor-articles-v2',
+        'store_id': 'fileSearchStores/krepolaborarticlesv2-wb8tgmx49wfh',
         'display_name': '勞動與健保業務',
         'icon': '📋',
         'description': '勞動部業務專區、勞保局保險業務、健保投保說明',
@@ -48,8 +48,8 @@ STORES = {
     },
     # === 稅務 ===
     'tax_faq': {
-        'name': 'krepo-tax-faq',
-        'store_id': 'fileSearchStores/krepotaxfaq-lbafhhfsjlsd',
+        'name': 'krepo-tax-faq-v2',
+        'store_id': 'fileSearchStores/krepotaxfaqv2-nfc7ykfmrwoi',
         'display_name': '稅務問答',
         'icon': '💰',
         'description': '綜合所得稅問與答',
@@ -58,12 +58,12 @@ STORES = {
     },
     # === 法規 ===
     'law_articles': {
-        'name': 'krepo-law-articles',
-        'store_id': 'fileSearchStores/krepolawarticles-5ai9q1awe7al',
+        'name': 'krepo-law-articles-v2',
+        'store_id': 'fileSearchStores/krepolawarticlesv2-l6wdg4ybixoe',
         'display_name': '法規條文',
         'icon': '📖',
         'description': '全民健康保險法等法規條文',
-        'count': 193,
+        'count': 561,
         'group': 'law',
     },
 }
@@ -81,10 +81,10 @@ def load_mappings():
     file_mapping = {}       # doc_id -> info
 
     mapping_files = [
-        "krepo-labor-faq.json",
-        "krepo-labor-articles.json",
-        "krepo-tax-faq.json",
-        "krepo-law-articles.json",
+        "krepo-labor-faq-v2.json",
+        "krepo-labor-articles-v2.json",
+        "krepo-tax-faq-v2.json",
+        "krepo-law-articles-v2.json",
     ]
 
     try:
