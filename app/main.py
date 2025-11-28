@@ -22,7 +22,7 @@ st.set_page_config(
     page_title="人資法規智能查詢",
     page_icon="👷",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
 # Store 配置（4 個 Store）
