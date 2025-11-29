@@ -578,7 +578,7 @@ def render_sidebar():
                 continue
             default_value = (key == 'labor_faq') if f"store_{key}" not in st.session_state else None
             checked = st.checkbox(
-                f"{store['icon']} {store['display_name']} ({store['count']:,})",
+                f"{store['icon']} {store['display_name']}",
                 value=default_value if default_value is not None else None,
                 key=f"store_{key}",
                 help=store['description']
@@ -594,7 +594,7 @@ def render_sidebar():
             if store.get('group') != 'tax':
                 continue
             checked = st.checkbox(
-                f"{store['icon']} {store['display_name']} ({store['count']:,})",
+                f"{store['icon']} {store['display_name']}",
                 key=f"store_{key}",
                 help=store['description']
             )
@@ -609,7 +609,7 @@ def render_sidebar():
             if store.get('group') != 'law':
                 continue
             checked = st.checkbox(
-                f"{store['icon']} {store['display_name']} ({store['count']:,})",
+                f"{store['icon']} {store['display_name']}",
                 key=f"store_{key}",
                 help=store['description']
             )
