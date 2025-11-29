@@ -27,25 +27,25 @@ st.set_page_config(
 )
 
 # Store 配置（4 個 Store）- v2 版本
-# 2025-11-29 更新：chunk-based 上傳，multi-QA 文件拆分為獨立 chunks
+# 2025-11-29 更新：重建 Store 修復重複文件問題
 STORES = {
     # === 勞動法規 ===
     'labor_faq': {
         'name': 'krepo-labor-faq-v2',
-        'store_id': 'fileSearchStores/krepolaborfaqv2-u2fyf3lx7jiz',
+        'store_id': 'fileSearchStores/krepolaborfaqv2-knbagjg20f9k',
         'display_name': '勞動法規FAQ',
         'icon': '👷',
         'description': '勞動部、勞保局、職安署常見問答',
-        'count': 1654,
+        'count': 1691,
         'group': 'labor',
     },
     'labor_articles': {
         'name': 'krepo-labor-articles-v2',
-        'store_id': 'fileSearchStores/krepolaborarticlesv2-vaavszbjixrw',
+        'store_id': 'fileSearchStores/krepolaborarticlesv2-c0q9a9rfsmok',
         'display_name': '勞動與健保業務',
         'icon': '📋',
         'description': '勞動部業務專區、勞保局保險業務、健保投保說明',
-        'count': 609,
+        'count': 626,
         'group': 'labor',
     },
     # === 稅務 ===
