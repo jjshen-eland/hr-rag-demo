@@ -181,9 +181,9 @@ def linkify_law_names(text: str) -> str:
         pcode = LAW_PCODE_MAPPING[law_name]
 
         # 匹配法規名稱 + 可選的條文編號（第X條、第X條之Y、第X條第Y項第Z款、但書等）
-        # 支援《》書名號包圍的格式（如《勞工退休金條例》第14條）
+        # 支援各種標點符號包圍的格式（Gemini 可能使用《》「」『』【】等）
         # 條文編號格式：第\d+條(?:之\d+)?(?:第\d+項)?(?:第\d+款)?(?:但書)?
-        pattern = r'《?' + re.escape(law_name) + r'》?(第\d+條(?:之\d+)?(?:第\d+項)?(?:第\d+款)?(?:但書)?)?'
+        pattern = r'[《「『【]?' + re.escape(law_name) + r'[》」』】]?(第\d+條(?:之\d+)?(?:第\d+項)?(?:第\d+款)?(?:但書)?)?'
 
         for match in re.finditer(pattern, text):
             start, end = match.span()
