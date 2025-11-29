@@ -705,8 +705,8 @@ def main():
 
                 # 答案
                 st.subheader("📝 答案")
-                # 只在「相關法規」區塊加上連結
-                answer_with_links = linkify_law_section(result['answer'])
+                # 全內容比對法規名稱，產生連結（不限於特定區塊）
+                answer_with_links = linkify_law_names(result['answer'])
                 st.markdown(answer_with_links)
 
                 st.markdown("---")
