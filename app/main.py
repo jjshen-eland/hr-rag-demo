@@ -254,24 +254,32 @@ def linkify_law_section(text: str) -> str:
         match = re.search(pattern, text)
         if match:
             # 找到標題位置
-            start_pos = match.end()
+            header_end = match.end()
 
-            # 找到該段落的結尾（下一個空行或文件結尾）
-            remaining = text[start_pos:]
+            # 跳過標題後的空白行（可能有 \n\n 或多個空行）
+            remaining_after_header = text[header_end:]
+            skip_match = re.match(r'^[\s\n]*', remaining_after_header)
+            if skip_match:
+                content_start = header_end + skip_match.end()
+            else:
+                content_start = header_end
 
-            # 找下一個段落分隔（兩個換行或結尾）
-            end_match = re.search(r'\n\n|\n(?=[#\*\-])', remaining)
+            # 從內容開始處找結尾
+            remaining = text[content_start:]
+
+            # 找下一個明顯的段落分隔（兩個以上的換行，或特殊標記開頭）
+            # 排除法規列表中的單一換行
+            end_match = re.search(r'\n\n\n|\n\n(?=[^《「『【\n])', remaining)
             if end_match:
-                end_pos = start_pos + end_match.start()
-                law_section = text[start_pos:end_pos]
-                # 只對法規區塊套用連結
-                linked_section = linkify_law_names(law_section)
-                return text[:start_pos] + linked_section + text[end_pos:]
+                end_pos = content_start + end_match.start()
             else:
                 # 到文件結尾
-                law_section = text[start_pos:]
-                linked_section = linkify_law_names(law_section)
-                return text[:start_pos] + linked_section
+                end_pos = len(text)
+
+            law_section = text[content_start:end_pos]
+            # 只對法規區塊套用連結
+            linked_section = linkify_law_names(law_section)
+            return text[:content_start] + linked_section + text[end_pos:]
 
     # 沒找到相關法規區塊，返回原文
     return text
