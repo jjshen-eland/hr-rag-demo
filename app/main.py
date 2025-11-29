@@ -618,11 +618,8 @@ def render_sidebar():
 
         st.markdown("---")
 
-        # 顯示選取的資料統計
-        if selected_stores:
-            total_docs = sum(STORES[s]['count'] for s in selected_stores)
-            st.metric("📚 文件總數", f"{total_docs:,}")
-        else:
+        # 檢查是否選取資料來源
+        if not selected_stores:
             st.warning("請至少選擇一個資料來源")
 
         st.markdown("---")
