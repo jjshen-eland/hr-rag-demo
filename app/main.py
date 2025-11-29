@@ -27,7 +27,7 @@ st.set_page_config(
 )
 
 # Store 配置（4 個 Store）- v2 版本
-# 2024-11-29 更新：重建 stores，法規名稱正規化修復
+# 2025-11-29 更新：chunk-based 上傳，multi-QA 文件拆分為獨立 chunks
 STORES = {
     # === 勞動法規 ===
     'labor_faq': {
@@ -36,7 +36,7 @@ STORES = {
         'display_name': '勞動法規FAQ',
         'icon': '👷',
         'description': '勞動部、勞保局、職安署常見問答',
-        'count': 1491,
+        'count': 1654,
         'group': 'labor',
     },
     'labor_articles': {
@@ -45,7 +45,7 @@ STORES = {
         'display_name': '勞動與健保業務',
         'icon': '📋',
         'description': '勞動部業務專區、勞保局保險業務、健保投保說明',
-        'count': 247,
+        'count': 609,
         'group': 'labor',
     },
     # === 稅務 ===
